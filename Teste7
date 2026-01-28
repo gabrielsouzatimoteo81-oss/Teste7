@@ -1,0 +1,364 @@
+
+-- h7z by WZ7 - Script para Delta Executor-- Versão Final Limpa: Aimbot Visível, ESP Vida Verde e Customização Total
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- Configurações
+local Config = {
+    ESPBox = false,
+    ESPLine = false,
+    ESPName = false,
+    ESPDistance = false,
+    ESPSkeleton = false,
+    ESPFire = false,
+    ESPHealth = false,
+    AimbotEnabled = false,
+    AimbotLookEnabled = false,
+    RGBEnabled = false,
+    
+    -- Cores
+    BoxColor = Color3.fromRGB(255, 255, 255),
+    LineColor = Color3.fromRGB(255, 255, 255),
+    NameColor = Color3.fromRGB(255, 255, 255),
+    SkeletonColor = Color3.fromRGB(255, 255, 255),
+    FireColor = Color3.fromRGB(255, 0, 0),
+    HealthColor = Color3.fromRGB(0, 255, 0),
+    MenuColor = Color3.fromRGB(15, 15, 15),
+    
+    -- Configurações Aimbot
+    AimbotFOV = 200,
+}
+
+local ESPObjects = {}
+local RGBColor = Color3.new(1, 0, 0)
+
+-- Sistema RGB Global
+RunService.RenderStepped:Connect(function()
+    if Config.RGBEnabled then
+        local hue = tick() % 5 / 5
+        RGBColor = Color3.fromHSV(hue, 1, 1)
+    end
+end)
+
+-- Criar GUI Principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "h7z_by_WZ7_FINAL"
+ScreenGui.ResetOnSpawn = false
+if gethui then ScreenGui.Parent = gethui() else ScreenGui.Parent = game.CoreGui end
+
+-- Frame Principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.BackgroundColor3 = Config.MenuColor
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+-- Barra de Título
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 15)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 20, 0, 0)
+Title.Size = UDim2.new(1, -100, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "h7z by WZ7"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 24
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+-- Botões de Controle
+local CloseButton = Instance.new("TextButton")
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.Position = UDim2.new(1, -45, 0, 10)
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Parent = TitleBar
+
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+MinimizeButton.Position = UDim2.new(1, -90, 0, 10)
+MinimizeButton.Size = UDim2.new(0, 35, 0, 35)
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Parent = TitleBar
+
+-- Scrolling Content
+local Content = Instance.new("ScrollingFrame")
+Content.BackgroundTransparency = 1
+Content.Position = UDim2.new(0, 10, 0, 60)
+Content.Size = UDim2.new(1, -20, 1, -70)
+Content.CanvasSize = UDim2.new(0, 0, 0, 900)
+Content.ScrollBarThickness = 2
+Content.Parent = MainFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.Parent = Content
+Layout.Padding = UDim.new(0, 10)
+
+-- Funções de UI
+local function AddToggle(text, callback)
+    local Frame = Instance.new("Frame")
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.Size = UDim2.new(1, 0, 0, 45)
+    Frame.Parent = Content
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Frame
+    
+    local Label = Instance.new("TextLabel")
+    Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 15, 0, 0)
+    Label.Size = UDim2.new(1, -100, 1, 0)
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+    
+    local Btn = Instance.new("TextButton")
+    Btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    Btn.Position = UDim2.new(1, -65, 0.5, -12)
+    Btn.Size = UDim2.new(0, 55, 0, 25)
+    Btn.Text = "OFF"
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Font = Enum.Font.GothamBold
+    Btn.Parent = Frame
+    
+    local BCorner = Instance.new("UICorner")
+    BCorner.CornerRadius = UDim.new(0, 8)
+    BCorner.Parent = Btn
+    
+    local state = false
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        Btn.Text = state and "ON" or "OFF"
+        Btn.BackgroundColor3 = state and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+        callback(state)
+    end)
+end
+
+local function AddColorPicker(text, callback)
+    local Frame = Instance.new("Frame")
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.Size = UDim2.new(1, 0, 0, 45)
+    Frame.Parent = Content
+    
+    local Label = Instance.new("TextLabel")
+    Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 15, 0, 0)
+    Label.Size = UDim2.new(1, -100, 1, 0)
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+    
+    local Btn = Instance.new("TextButton")
+    Btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Position = UDim2.new(1, -65, 0.5, -12)
+    Btn.Size = UDim2.new(0, 55, 0, 25)
+    Btn.Text = ""
+    Btn.Parent = Frame
+    
+    local colors = {Color3.new(1,1,1), Color3.new(1,0,0), Color3.new(0,1,0), Color3.new(0,0,1), Color3.new(1,1,0), Color3.new(1,0,1), Color3.new(0,1,1), Color3.fromRGB(15,15,15), Color3.fromRGB(40,40,40)}
+    local i = 1
+    Btn.MouseButton1Click:Connect(function()
+        i = i + 1 if i > #colors then i = 1 end
+        Btn.BackgroundColor3 = colors[i]
+        callback(colors[i])
+    end)
+end
+
+-- Adicionar Funções ao Menu
+AddToggle("SISTEMA RGB (TUDO)", function(v) Config.RGBEnabled = v end)
+AddToggle("Aimbot 100% Grude", function(v) Config.AimbotEnabled = v end)
+AddToggle("Aimbot ao Olhar (Dinâmico)", function(v) Config.AimbotLookEnabled = v end)
+AddToggle("ESP Box (Contorno)", function(v) Config.ESPBox = v end)
+AddToggle("ESP Vida (Verde)", function(v) Config.ESPHealth = v end)
+AddToggle("ESP Line", function(v) Config.ESPLine = v end)
+AddToggle("ESP Name", function(v) Config.ESPName = v end)
+AddToggle("ESP Distance", function(v) Config.ESPDistance = v end)
+AddToggle("ESP Skeleton", function(v) Config.ESPSkeleton = v end)
+AddToggle("ESP Fire", function(v) Config.ESPFire = v end)
+
+AddColorPicker("COR TOTAL DO MENU", function(c) 
+    MainFrame.BackgroundColor3 = c 
+    TitleBar.BackgroundColor3 = Color3.new(math.clamp(c.R + 0.1, 0, 1), math.clamp(c.G + 0.1, 0, 1), math.clamp(c.B + 0.1, 0, 1))
+    Config.MenuColor = c 
+end)
+AddColorPicker("Cor ESP Box", function(c) Config.BoxColor = c end)
+AddColorPicker("Cor ESP Line", function(c) Config.LineColor = c end)
+AddColorPicker("Cor ESP Skeleton", function(c) Config.SkeletonColor = c end)
+AddColorPicker("Cor ESP Fire", function(c) Config.FireColor = c end)
+
+-- Minimizar/Fechar
+local min = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    min = not min
+    MainFrame:TweenSize(min and UDim2.new(0, 400, 0, 50) or UDim2.new(0, 400, 0, 500), "Out", "Quad", 0.3, true)
+    Content.Visible = not min
+end)
+CloseButton.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
+UserInputService.InputBegan:Connect(function(i, p) if not p and i.KeyCode == Enum.KeyCode.Insert then MainFrame.Visible = not MainFrame.Visible end end)
+
+-- ========================================
+-- SISTEMA AIMBOT (VISÍVEL & DINÂMICO)
+-- ========================================
+local FOV = Drawing.new("Circle")
+FOV.Visible = true
+FOV.Thickness = 2
+FOV.Radius = Config.AimbotFOV
+FOV.Filled = false
+
+RunService.RenderStepped:Connect(function()
+    FOV.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FOV.Visible = Config.AimbotEnabled or Config.AimbotLookEnabled
+    FOV.Color = Config.RGBEnabled and RGBColor or Color3.new(1,1,1)
+end)
+
+local function IsVisible(part)
+    local ignore = {LocalPlayer.Character, Camera}
+    local ray = Ray.new(Camera.CFrame.Position, (part.Position - Camera.CFrame.Position).Unit * 1000)
+    local hit, pos = workspace:FindPartOnRayWithIgnoreList(ray, ignore)
+    if hit and hit:IsDescendantOf(part.Parent) then
+        return true
+    end
+    return false
+end
+
+local function GetTarget()
+    local target, dist = nil, math.huge
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character.Humanoid.Health > 0 then
+            if IsVisible(p.Character.Head) then
+                local pos, on = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                if on then
+                    local mag = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                    if mag < Config.AimbotFOV and mag < dist then target, dist = p, mag end
+                end
+            end
+        end
+    end
+    return target
+end
+
+RunService.RenderStepped:Connect(function()
+    if Config.AimbotEnabled then
+        local t = GetTarget()
+        if t then 
+            local targetPos = t.Character.Head.Position
+            local targetLook = (targetPos - Camera.CFrame.Position).Unit
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, Camera.CFrame.Position + targetLook)
+        end
+    elseif Config.AimbotLookEnabled then
+        local t = GetTarget()
+        if t then
+            local pos, on = Camera:WorldToViewportPoint(t.Character.Head.Position)
+            local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+            if mag < 150 then 
+                local targetPos = t.Character.Head.Position
+                local targetLook = (targetPos - Camera.CFrame.Position).Unit
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, Camera.CFrame.Position + targetLook)
+            end
+        end
+    end
+end)
+
+-- ========================================
+-- SISTEMA ESP (BOX CONTORNO & VIDA VERDE)
+-- ========================================
+local function CreateESP(p)
+    if p == LocalPlayer then return end
+    local d = {
+        Box = Drawing.new("Square"),
+        Line = Drawing.new("Line"),
+        Name = Drawing.new("Text"),
+        Dist = Drawing.new("Text"),
+        HealthBar = Drawing.new("Line"),
+        HealthBG = Drawing.new("Line"),
+        Skeleton = {},
+        Highlight = Instance.new("Highlight")
+    }
+    d.Box.Thickness = 2; d.Box.Filled = false
+    d.Line.Thickness = 2
+    d.Name.Size = 16; d.Name.Center = true; d.Name.Outline = true
+    d.Dist.Size = 14; d.Dist.Center = true; d.Dist.Outline = true
+    d.HealthBar.Thickness = 3; d.HealthBar.Color = Config.HealthColor
+    d.HealthBG.Thickness = 3; d.HealthBG.Color = Color3.new(0,0,0)
+    for i=1,15 do table.insert(d.Skeleton, Drawing.new("Line")) end
+    ESPObjects[p] = d
+end
+
+RunService.RenderStepped:Connect(function()
+    for p, d in pairs(ESPObjects) do
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character.Humanoid.Health > 0 then
+            local hrp = p.Character.HumanoidRootPart
+            local head = p.Character:FindFirstChild("Head")
+            local hum = p.Character.Humanoid
+            local vec, on = Camera:WorldToViewportPoint(hrp.Position)
+            if on then
+                local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local footPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+                local height = math.abs(headPos.Y - footPos.Y)
+                local width = height / 1.5
+                
+                local currentColor = Config.RGBEnabled and RGBColor or Config.BoxColor
+                
+                d.Box.Visible = Config.ESPBox; d.Box.Size = Vector2.new(width, height); d.Box.Position = Vector2.new(vec.X - width/2, vec.Y - height/2); d.Box.Color = currentColor
+                
+                d.HealthBG.Visible = Config.ESPHealth; d.HealthBG.From = Vector2.new(vec.X + width/2 + 5, vec.Y + height/2); d.HealthBG.To = Vector2.new(vec.X + width/2 + 5, vec.Y - height/2)
+                d.HealthBar.Visible = Config.ESPHealth; d.HealthBar.From = Vector2.new(vec.X + width/2 + 5, vec.Y + height/2); d.HealthBar.To = Vector2.new(vec.X + width/2 + 5, vec.Y + height/2 - (height * (hum.Health / hum.MaxHealth))); d.HealthBar.Color = Config.HealthColor
+                
+                d.Line.Visible = Config.ESPLine; d.Line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y); d.Line.To = Vector2.new(vec.X, vec.Y); d.Line.Color = Config.RGBEnabled and RGBColor or Config.LineColor
+                d.Name.Visible = Config.ESPName; d.Name.Position = Vector2.new(vec.X, headPos.Y - 20); d.Name.Text = p.Name; d.Name.Color = Config.RGBEnabled and RGBColor or Config.NameColor
+                d.Dist.Visible = Config.ESPDistance; d.Dist.Position = Vector2.new(vec.X, footPos.Y + 5); d.Dist.Text = math.floor((Camera.CFrame.Position - hrp.Position).Magnitude) .. " studs"; d.Dist.Color = Config.RGBEnabled and RGBColor or Config.NameColor
+                
+                if Config.ESPSkeleton then
+                    local conns = p.Character:FindFirstChild("UpperTorso") and {{"Head","UpperTorso"},{"UpperTorso","LowerTorso"},{"UpperTorso","LeftUpperArm"},{"LeftUpperArm","LeftLowerArm"},{"UpperTorso","RightUpperArm"},{"RightUpperArm","RightLowerArm"},{"LowerTorso","LeftUpperLeg"},{"LeftUpperLeg","LeftLowerLeg"},{"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"}} or {{"Head","Torso"},{"Torso","Left Arm"},{"Torso","Right Arm"},{"Torso","Left Leg"},{"Torso","Right Leg"}}
+                    for i, c in ipairs(conns) do
+                        local p1, p2 = p.Character:FindFirstChild(c[1]), p.Character:FindFirstChild(c[2])
+                        if p1 and p2 then
+                            local v1, o1 = Camera:WorldToViewportPoint(p1.Position)
+                            local v2, o2 = Camera:WorldToViewportPoint(p2.Position)
+                            d.Skeleton[i].Visible = o1 and o2
+                            if o1 and o2 then d.Skeleton[i].From = Vector2.new(v1.X,v1.Y); d.Skeleton[i].To = Vector2.new(v2.X,v2.Y); d.Skeleton[i].Color = Config.RGBEnabled and RGBColor or Config.SkeletonColor end
+                        end
+                    end
+                else for _,l in pairs(d.Skeleton) do l.Visible = false end end
+                if Config.ESPFire then d.Highlight.Parent = p.Character; d.Highlight.Enabled = true; d.Highlight.FillColor = Config.RGBEnabled and RGBColor or Config.FireColor; d.Highlight.OutlineColor = Config.RGBEnabled and RGBColor or Config.FireColor else d.Highlight.Enabled = false end
+            else d.Box.Visible = false; d.HealthBar.Visible = false; d.HealthBG.Visible = false; d.Line.Visible = false; d.Name.Visible = false; d.Dist.Visible = false; for _,l in pairs(d.Skeleton) do l.Visible = false end; d.Highlight.Enabled = false end
+        else d.Box.Visible = false; d.HealthBar.Visible = false; d.HealthBG.Visible = false; d.Line.Visible = false; d.Name.Visible = false; d.Dist.Visible = false; for _,l in pairs(d.Skeleton) do l.Visible = false end; d.Highlight.Enabled = false end
+    end
+end)
+
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+Players.PlayerAdded:Connect(CreateESP)
+print("h7z by WZ7 FINAL CARREGADO!")
+
